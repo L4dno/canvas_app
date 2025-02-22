@@ -25,8 +25,8 @@ const Temp = () => {
   const [books, setBooks] = useState([
     {
       id: Math.random().toString(36).substring(7),
-      title: "War",
-      author: "Sarkis Shainyan",
+      title: "Война",
+      author: "Саркис Шаинян",
       isFavorite: false,
     },
   ]);
