@@ -10,6 +10,7 @@ const initialize = (getState, getRecoveryState) => {
       token: process.env.REACT_APP_TOKEN,
       initPhrase: `Запусти ${process.env.REACT_APP_SMARTAPP}`,
       getState,
+      getRecoveryState: getState,
       nativePanel: {
         defaultText: "Добавь книгу ...",
         screenshotMode: false,
@@ -17,7 +18,7 @@ const initialize = (getState, getRecoveryState) => {
       },
     });
   } else {
-    return createAssistant({ getState });
+    return createAssistant({ getState, getRecoveryState });
   }
 };
 
@@ -31,22 +32,53 @@ const Temp = () => {
     },
   ]);
 
+  const [pendingBook, setPendingBook] = useState({title:"", author:""});
+
   const [filter, setFilter] = useState({
     title: "",
     author: "",
     isFavorite: false,
   });
 
-  const addBook = (action) => {
+  const addBook = (bookData) => {
+    if (bookData.title && bookData.author){
+    console.log('Added a new book with: ', bookData)
     setBooks([
       ...books,
       {
         id: Math.random().toString(36).substring(7),
-        title: action.book.title,
-        author: action.book.author,
+        title: bookData.title,
+        author: bookData.author,
         isFavorite: false,
       },
     ]);
+  }
+  else {
+    console.log('Cant add a new book', bookData);
+      
+    //const completed = this.state.notes.find(({ id }) => id)?.completed;
+    //if (!completed) {
+      //}
+
+  }
+  };
+
+  function _send_action_value(action_id, value) {
+    const data = {
+      action: {
+        action_id: action_id,
+        parameters: {
+          // значение поля parameters может быть любым, но должно соответствовать серверной логике
+          value: value, // см.файл src/sc/noteDone.sc смартаппа в Studio Code
+        },
+      },
+    };
+    const unsubscribe = this.assistant.sendData(data, (data) => {
+      // функция, вызываемая, если на sendData() был отправлен ответ
+      const { type, payload } = data;
+      console.log('sendData onData:', type, payload);
+      unsubscribe();
+    });
   };
 
   const deleteBook = (action) => {
@@ -130,7 +162,8 @@ const Temp = () => {
   //   };
   // }
 
-  const assistant = initialize(() => getAssistantAppState());
+  //const assistant = initialize(() => getAssistantAppState());
+  const assistant = initialize(() => getAssistantAppState(), () => getAssistantAppState());
 
   assistant.on("data", (data) => {
     if (data.type === "smart_app_data") {
@@ -150,8 +183,30 @@ const Temp = () => {
     console.log('dispatchAction\n')
     if (action) {
       switch (action.type) {
+        case "set_title":
+          setPendingBook((prev) => {
+            const updated = {...prev, title:action.title};
+            console.log("Set a title for book:", updated);
+            return updated;
+          });
+          break;
+        case "set_author":
+         setPendingBook((prev) => {
+           const updated = { ...prev, author: action.author };
+           console.log("Set an author for book", updated);
+           return updated;
+         });
+         break;
         case "add_book":
+          if (pendingBook.title && pendingBook.author) {
           addBook(action);
+          }
+          else {
+            console.warn("Cant add new book we dont have title or author", pendingBook);
+            const texts = ['не хватает автора или книги!', 'Я не знаю автора, либо названия'];
+            const idx = (Math.random() * texts.length) | 0;
+            this._send_action_value('done', texts[idx]);
+          }
           break;
         case "delete_note":
           console.log(action);
