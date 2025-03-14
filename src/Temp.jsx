@@ -40,46 +40,22 @@ const Temp = () => {
     isFavorite: false,
   });
 
-  const addBook = (bookData) => {
-    if (bookData.title && bookData.author){
-    console.log('Added a new book with: ', bookData)
+  const addBook = () => {
+    console.log('Added a new book with: ', pendingBook)
     setBooks([
       ...books,
       {
         id: Math.random().toString(36).substring(7),
-        title: bookData.title,
-        author: bookData.author,
+        title: pendingBook.title,
+        author: pendingBook.author,
         isFavorite: false,
       },
     ]);
-  }
-  else {
-    console.log('Cant add a new book', bookData);
-      
-    //const completed = this.state.notes.find(({ id }) => id)?.completed;
-    //if (!completed) {
-      //}
-
-  }
+    pendingBook.title = undefined;
+    pendingBook.author = undefined;
   };
 
-  function _send_action_value(action_id, value) {
-    const data = {
-      action: {
-        action_id: action_id,
-        parameters: {
-          // значение поля parameters может быть любым, но должно соответствовать серверной логике
-          value: value, // см.файл src/sc/noteDone.sc смартаппа в Studio Code
-        },
-      },
-    };
-    const unsubscribe = this.assistant.sendData(data, (data) => {
-      // функция, вызываемая, если на sendData() был отправлен ответ
-      const { type, payload } = data;
-      console.log('sendData onData:', type, payload);
-      unsubscribe();
-    });
-  };
+  
 
   const deleteBook = (action) => {
     console.log("called deletebook with action:\n")
@@ -131,36 +107,6 @@ const Temp = () => {
     console.log("getAssistantAppState: state:", state);
     return state;
   };
-  
-  // function getAssistantAppState() {
-  //   console.log("called getAssistant\n")
-  //   return {
-  //     item_selector: {
-  //       ignored_words: [
-  //         // слова, которые удаляются из голосового сообщения,
-  //         // тк они есть среди шаблонов сценариев
-  //         "добавить",
-  //         "установить",
-  //         "запиши",
-  //         "поставь",
-  //         "закинь",
-  //         "напомнить",
-  //         "создать", // addNote.sc
-  //         "удалить",
-  //         "удали", // deleteNote.sc
-  //         "выполни",
-  //         "выполнил",
-  //         "сделал", // выполнил|сделал
-  //       ],
-  //       // создаем массив, сопостовляя некий новый индекс
-  //       items: [
-  //         books.map((book, index) => {
-  //           return { ...book, number: index + 1 };
-  //         }),
-  //       ],
-  //     },
-  //   };
-  // }
 
   //const assistant = initialize(() => getAssistantAppState());
   const assistant = initialize(() => getAssistantAppState(), () => getAssistantAppState());
@@ -178,6 +124,24 @@ const Temp = () => {
   assistant.on("start", (event) => {
     assistant.getInitialData();
   });
+
+  function _send_action_value(action_id, value) {
+    const data = {
+      action: {
+        action_id: action_id,
+        parameters: {
+          // значение поля parameters может быть любым, но должно соответствовать серверной логике
+          value: value, // см.файл src/sc/noteDone.sc смартаппа в Studio Code
+        },
+      },
+    };
+    const unsubscribe = assistant.sendData(data, (data) => {
+      // функция, вызываемая, если на sendData() был отправлен ответ
+      const { type, payload } = data;
+      console.log('sendData onData:', type, payload);
+      unsubscribe();
+    });
+  };
 
   const dispatchAssistantAction = (action) => {
     console.log('dispatchAction\n')
@@ -198,14 +162,16 @@ const Temp = () => {
          });
          break;
         case "add_book":
+          console.log('Called an addBook with data: ' + pendingBook.title + " " + pendingBook.author)  
           if (pendingBook.title && pendingBook.author) {
-          addBook(action);
+          addBook();
           }
           else {
             console.warn("Cant add new book we dont have title or author", pendingBook);
             const texts = ['не хватает автора или книги!', 'Я не знаю автора, либо названия'];
             const idx = (Math.random() * texts.length) | 0;
-            this._send_action_value('done', texts[idx]);
+            // почему-то не может прочитать пропертис
+            _send_action_value('done', texts[idx]);
           }
           break;
         case "delete_note":
