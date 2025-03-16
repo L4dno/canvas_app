@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createAssistant, createSmartappDebugger } from "@salutejs/client";
 import BookForm from "./components/BookForm/BookForm";
 import BookList from "./components/BookList/BookList";
@@ -51,10 +51,13 @@ const Temp = () => {
         isFavorite: false,
       },
     ]);
-    pendingBook.title = undefined;
-    pendingBook.author = undefined;
+    pendingBook.title = '';
+    pendingBook.author = '';
   };
 
+  useEffect(() => {
+    assistant.setGetState(() => getAssistantAppState());
+  }, [books]);
   
 
   const deleteBook = (action) => {
@@ -66,6 +69,10 @@ const Temp = () => {
   };
 
   const toggleFavoriteBook = (book) => {
+    console.log("called toggleFavorite with action:\n")
+    console.log(book)
+    console.log('books after toggling:\n')
+    console.log(books)
     setBooks(
       [...books].map((currentBook) => {
         if (book.id === currentBook.id) {
@@ -109,7 +116,11 @@ const Temp = () => {
   };
 
   //const assistant = initialize(() => getAssistantAppState());
-  const assistant = initialize(() => getAssistantAppState(), () => getAssistantAppState());
+  const assistant = useMemo(
+    () => initialize(() => getAssistantAppState(), () => getAssistantAppState()),
+    []
+  );
+  
 
   assistant.on("data", (data) => {
     if (data.type === "smart_app_data") {
@@ -179,6 +190,7 @@ const Temp = () => {
           deleteBook(action);
           break;
         case "toggle_favorite_book":
+          console.log(action);
           toggleFavoriteBook(action);
           break;
         default:
@@ -194,7 +206,12 @@ const Temp = () => {
       </header>
       <main className="app-main">
         <div className="app-left-column">
-          <BookForm onAddBook={(book) => addBook({ type: "add_book", book })} />
+          {/*<BookForm onAddBook={(book) => addBook({ type: "add_book", book })} />*/}
+          <BookForm onAddBook={(book) => {
+            console.log('received from react fields a book' + book.title + ' ' + book.author)
+            setPendingBook({ title:book.title, author:book.author });
+            addBook();
+          }} />
         </div>
         <div className="app-right-column">
           <Filter filter={filter} setFilter={setFilter} />
