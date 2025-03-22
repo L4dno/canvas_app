@@ -52,7 +52,7 @@ const BookList = ({ books, onDeleteBook, onToggleFavoriteBook, filter }) => {
                 <strong>{highlightMatch(book.author, filter.author)}</strong>
               </div>
               <div className="book-actions">
-                {book.isFavorite ? (
+                {/*{book.isFavorite ? (
                   <BsBookmarkStarFill
                     className="star-icon"
                     onClick={() => onToggleFavoriteBook(book)}
@@ -62,7 +62,7 @@ const BookList = ({ books, onDeleteBook, onToggleFavoriteBook, filter }) => {
                     className="star-icon"
                     onClick={() => onToggleFavoriteBook(book)}
                   />
-                )}
+                )}*/}
                 <button onClick={() => onDeleteBook(book)}>Delete</button>
               </div>
             </li>

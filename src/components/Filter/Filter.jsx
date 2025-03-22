@@ -25,7 +25,7 @@ const Filter = ({ filter, setFilter }) => {
             }
           />
         </div>
-        <div className="filter-group">
+        {/*<div className="filter-group">
           <label>
             <input
               type="checkbox"
@@ -36,7 +36,7 @@ const Filter = ({ filter, setFilter }) => {
             />
             Only favorite
           </label>
-        </div>
+        </div>*/}
         <button
           type="button"
           onClick={() =>
